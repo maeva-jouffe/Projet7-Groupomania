@@ -76,13 +76,23 @@ exports.deleteAccount = (req, res, next) => {
   const value = req.params.id;
   if (value && value !== userId) {
     return res.status(404).json({ message: "Vous n'avez pas l'autorisation de supprimer un compte qui ne vous appartient pas" });
-  } else {
-    connection.query(query, value, function (err, data, fields) {
-      if (err) {
-        console.log(value);
+  } 
+  connection.query(query, value, function (err, data, fields) {
+      if (err) { 
         return res.status(400).json({ err: "Désolé, votre demande de suppression de compte n'a pu aboutir." });
-      }
+    } 
       res.json({ status: 200, data, message: "Votre compte a bien été supprimé !" });
     });
-  }
+};
+
+//Affichage des données d'un utilisateur
+exports.getOneUser = (req, res, next) => {
+  const query = `SELECT * FROM Users WHERE id = ?`;
+  const value = req.params.id;
+  connection.query(query, value, function (err, data, fields) {  
+    if (err) {  
+      return res.status(404).json({ message:'non' });
+    }
+    res.json({ status: 200, data, message: "Utilisateur affiché avec succès !" })
+  });
 };

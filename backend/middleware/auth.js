@@ -5,15 +5,15 @@ module.exports = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
         const decodedToken = jwt.verify(token, tokenMasque);
-        const userId = decodedToken.id;
-        if (req.body.userId && req.body.userId !== userId) {
-            throw 'Invalid user ID';
-        } else {
+        const userId = decodedToken.userId;
+        if (req.params.id && req.params.id == userId) {
+            console.log(req.params.id)
             next();
+            
+        } else {
+            throw 'Invalid user ID';
         }
     } catch {
-        res.status(401).json({
-            error: new Error('Invalid request!')
-        });
+        res.status(401).json({ message: "Vous n\'avez pas les droits requis pour accéder à ce contenu" });
     }
 };

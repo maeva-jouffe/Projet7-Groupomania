@@ -12,4 +12,7 @@ router.post('/login', userCtrl.login);
 //Suppression du compte de l'utilisateur
 router.delete('/:id', userCtrl.deleteAccount);
 
+//Affichage des données d'un utilisateur
+router.get("/:id", auth, userCtrl.getOneUser);
+
 module.exports = router;
