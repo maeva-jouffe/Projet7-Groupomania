@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userCtrl = require("../controllers/user");
 const auth = require('../middleware/auth');
+const multer = require('../middleware/multer-config');
 
 //Inscription de l'utilisateur
 router.post("/signup", userCtrl.signup);
@@ -13,6 +14,8 @@ router.post('/login', userCtrl.login);
 router.delete('/:id', userCtrl.deleteAccount);
 
 //Affichage des données d'un utilisateur
-router.get("/:id", auth, userCtrl.getOneUser);
+router.get('/:id', auth, userCtrl.getOneUser);
+
+router.put('/:id', auth, multer)
 
 module.exports = router;

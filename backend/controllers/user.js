@@ -23,45 +23,67 @@ exports.signup = (req, res, next) => {
         email: req.body.email,
         password: hash,
         first_name: req.body.first_name,
-        last_name: req.body.last_name
+        last_name: req.body.last_name,
+        photo: "file:///C:/Users/maeva/Desktop/Open%20classrooms/P7_Jouffe_Maeva/groupomania/backend/images/PhotoProfilDefault.jpg"
       };
+      console.log(user.photo);
       //Constante qui enregistrera le nouvel utilisateur dans la base de données
-      const query = 'INSERT INTO Users (email, password, first_name, last_name) VALUES(?,?,?,?)';
+      const query = 'INSERT INTO Users (email, password, first_name, last_name, photo) VALUES(?,?,?,?,?)';
       //Constante qui déclarera les valeurs tapées par le nouvel utilisateur
-      const values = [user.email, user.password, user.first_name, user.last_name];
+      const values = [user.email, user.password, user.first_name, user.last_name, user.photo];
       //Envoi de la requête à la base de données
       connection.query(query, values, (err, data, fields) => {
         if (err) {
           return res.status(400).json({ err });
-        } else {
-          return res.status(201).json({ message: 'Utilisateur crée' });
         }
+        //Si tout s'est bien passé, on crée un nouveau token pour cet utilisateur
+        const query = `SELECT * FROM Users WHERE email = ?`;
+        const value = req.body.email;
+        connection.query(query, value, function (err, data, fields) {
+          if (err) {
+            return res.status(400).json({ err });
+          }
+          res.status(200).json({
+            userId: data[0].id,
+            token: jwt.sign(
+              { userId: data[0].id, isAdmin: data[0].is_admin },
+              tokenMasque,
+              { expiresIn: "24h" }
+            )
+          });
+        }
+        )
       });
     })
-    .catch((error) => res.status(500).json({ message: "non" }));
+    .catch((error) => res.status(500).json({ message:"non" }));
 };
 
 //Connexion de l'utilisateur
 exports.login = (req, res, next) => {
+  //On recherche dans la base de données l'utilisateur dont l'email est le même que celui de la requête
   const query = `SELECT * FROM Users WHERE email = ?`;
   const value = req.body.email;
   connection.query(query, value, function (err, data, fields) {
     if (data.length === 0) {
       return res.status(404).json({ err: "Pas de compte existant" });
     }
+    //Oncompare le hash du mot de passe en base de données et le hash qui vient d'être crée
     bcrypt.compare(req.body.password, data[0].password)
       .then(valid => {
         if (!valid) {
           return res.status(401).json({ error: "Mot de passe incorrect !" });
         }
+        //Si tout s'est bien passé on génère un nouveau token
         res.status(200).json({
           userId: data[0].id,
+          isAdmin: data[0].isAdmin,
           token: jwt.sign(
-            { userId: data[0].id },
+            { userId: data[0].id, isAdmin: data[0].isAdmin},
             tokenMasque,
             { expiresIn: "24h" }
           )
         });
+        next();
       })
       .catch(error => res.status(500).json({ error }));
   });
@@ -76,23 +98,44 @@ exports.deleteAccount = (req, res, next) => {
   const value = req.params.id;
   if (value && value !== userId) {
     return res.status(404).json({ message: "Vous n'avez pas l'autorisation de supprimer un compte qui ne vous appartient pas" });
-  } 
+  }
   connection.query(query, value, function (err, data, fields) {
-      if (err) { 
-        return res.status(400).json({ err: "Désolé, votre demande de suppression de compte n'a pu aboutir." });
-    } 
-      res.json({ status: 200, data, message: "Votre compte a bien été supprimé !" });
-    });
+    if (err) {
+      return res.status(400).json({ err: "Désolé, votre demande de suppression de compte n'a pu aboutir." });
+    }
+    res.json({ status: 200, data, message: "Votre compte a bien été supprimé !" });
+  });
 };
 
 //Affichage des données d'un utilisateur
-exports.getOneUser = (req, res, next) => {
+exports.getOneUser = (req, res) => {
   const query = `SELECT * FROM Users WHERE id = ?`;
   const value = req.params.id;
-  connection.query(query, value, function (err, data, fields) {  
-    if (err) {  
-      return res.status(404).json({ message:'non' });
+  connection.query(query, value, function (err, data, fields) {
+    if (err) {
+      return res.status(404).json(err);
     }
     res.json({ status: 200, data, message: "Utilisateur affiché avec succès !" })
   });
 };
+
+//Modification des données d'un utilisateur
+
+
+
+
+exports.modifyProfil = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const photo = req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : ``;
+  const query = "UPDATE Users SET email=?, password=?, photo=?"
+  const values = [email, password, photo];
+  connection.query(query, value, function (err, data, fields) {
+    if (err) {
+      return res.status(404).json(err);
+    } else {
+      res.json({ status: 200, data, message: "Informations modifiées avec succès !" })
+    }
+  })
+};
+
