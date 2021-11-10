@@ -4,15 +4,12 @@ const tokenMasque = process.env.TOKEN;
 const connection = require("../mySqlConfig");
 connection.connect();
 
-
 //Doit comporter entre 2 et 25 caractères, n'accepte pas les chiffres et caractères spéciaux, accepte les espaces
 const regexName = /^[A-Za-z\s]{2,25}$/;
 //doit correspondre au format d'une adresse email
 const regexEmail = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 //Minimum huit caractères, au moins une lettre majuscule, une lettre minuscule et un chiffre
 const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-
-
 
 //Inscription de l'utilisateur
 exports.signup = (req, res, next) => {
@@ -24,13 +21,13 @@ exports.signup = (req, res, next) => {
         password: hash,
         first_name: req.body.first_name,
         last_name: req.body.last_name,
-        photo: "file:///C:/Users/maeva/Desktop/Open%20classrooms/P7_Jouffe_Maeva/groupomania/backend/images/PhotoProfilDefault.jpg"
+        photo: "http://localhost:3000/images/PhotoProfilDefault.jpg",
+        bio:"",
       };
-      console.log(user.photo);
       //Constante qui enregistrera le nouvel utilisateur dans la base de données
-      const query = 'INSERT INTO Users (email, password, first_name, last_name, photo) VALUES(?,?,?,?,?)';
+      const query = 'INSERT INTO Users (email, password, first_name, last_name, photo, bio) VALUES(?,?,?,?,?,?)';
       //Constante qui déclarera les valeurs tapées par le nouvel utilisateur
-      const values = [user.email, user.password, user.first_name, user.last_name, user.photo];
+      const values = [user.email, user.password, user.first_name, user.last_name, user.photo, user.bio];
       //Envoi de la requête à la base de données
       connection.query(query, values, (err, data, fields) => {
         if (err) {
@@ -38,24 +35,25 @@ exports.signup = (req, res, next) => {
         }
         //Si tout s'est bien passé, on crée un nouveau token pour cet utilisateur
         const query = `SELECT * FROM Users WHERE email = ?`;
-        const value = req.body.email;
+        const value = user.email;
         connection.query(query, value, function (err, data, fields) {
           if (err) {
             return res.status(400).json({ err });
           }
           res.status(200).json({
             userId: data[0].id,
+            isAdmin: data[0].isAdmin,
             token: jwt.sign(
-              { userId: data[0].id, isAdmin: data[0].is_admin },
+              { userId: data[0].id, isAdmin: data[0].isAdmin },
               tokenMasque,
               { expiresIn: "24h" }
             )
           });
-        }
-        )
+          next();
+        })
       });
     })
-    .catch((error) => res.status(500).json({ message:"non" }));
+    .catch((error) => res.status(500).json({ error }));
 };
 
 //Connexion de l'utilisateur
@@ -67,7 +65,7 @@ exports.login = (req, res, next) => {
     if (data.length === 0) {
       return res.status(404).json({ err: "Pas de compte existant" });
     }
-    //Oncompare le hash du mot de passe en base de données et le hash qui vient d'être crée
+    //On compare le hash du mot de passe en base de données et le hash qui vient d'être crée
     bcrypt.compare(req.body.password, data[0].password)
       .then(valid => {
         if (!valid) {
@@ -120,17 +118,17 @@ exports.getOneUser = (req, res) => {
 };
 
 //Modification des données d'un utilisateur
-
-
-
-
 exports.modifyProfil = (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const photo = req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : ``;
-  const query = "UPDATE Users SET email=?, password=?, photo=?"
-  const values = [email, password, photo];
-  connection.query(query, value, function (err, data, fields) {
+  const user = {
+    email: req.body.email,
+     first_name: req.body.first_name,
+     last_name: req.body.last_name,
+     bio: req.body.bio,
+     photo: req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : ``
+  };
+  const query ='UPDATE Users SET first_name = ?, last_name = ?, photo = ?, bio = ? WHERE id=?';
+  const value = [user.first_name, user.last_name, user.bio, user.photo, user.email];
+  connection.query(query, value, (err, data, fields) => {
     if (err) {
       return res.status(404).json(err);
     } else {
@@ -138,4 +136,3 @@ exports.modifyProfil = (req, res, next) => {
     }
   })
 };
-

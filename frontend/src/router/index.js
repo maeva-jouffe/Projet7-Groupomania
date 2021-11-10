@@ -1,9 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import SignUp from '../views/SignUp.vue'
-import Login from '../views/Login.vue'
-import Profil from '../views/Profil.vue'
 import Home from '../views/Home.vue'
-import Publications from '../views/Publications.vue'
 
 const routes = [
   {
@@ -13,34 +9,38 @@ const routes = [
   },
   {
     path: '/auth/signup',
-    name: 'SignUp',
-    component: SignUp
+    name: 'Signup',
+    // Optimisation pour les pages situées en dehors de la page d'accueil, qui seront chargées plus tard
+    component: () => import('../views/Signup.vue')
   },
   {
     path: '/auth/login',
     name: 'Login',
-    component: Login
+    component: () => import('../views/Login.vue')
   },
   {
     path: '/auth/:id',
     name: 'Profil',
-    component: Profil
+    component: () => import('../views/Profil.vue')
   },
   {
-    path: '/publications',
-    name: 'Publications',
-    component: Publications
+    path: '/wall',
+    name: 'Wall',
+    component: () => import('../views/Wall.vue')
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue')
   },
   {
     path: '/about',
     name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    component: () => import('../views/About.vue')
   }
 ]
 
+//Création de la constante router qui sera utilisée avec la fonction createRouter dans laquelle l'historique web sera crée et auquel on passera les routes
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes

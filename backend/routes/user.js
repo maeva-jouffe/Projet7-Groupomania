@@ -16,6 +16,7 @@ router.delete('/:id', userCtrl.deleteAccount);
 //Affichage des données d'un utilisateur
 router.get('/:id', auth, userCtrl.getOneUser);
 
+//Modification des données d'un utilisateur
 router.put('/:id', auth, multer)
 
 module.exports = router;
