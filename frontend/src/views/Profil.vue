@@ -17,7 +17,8 @@
           <img :src="photo" alt="photo de profil" class="modifyPhotoDeProfil" />
           <input
             type="file"
-            @change="onChangePhoto"
+            @change="setFile()"
+            ref="photo"
             name="photo"
             class="form-control"
             id="photo"
@@ -93,24 +94,27 @@ export default {
       showModify: false,
     };
   },
-  computed: {},
   methods: {
-    onChangePhoto(event) {
-      this.$emit("update:modelValue", event.target.files[0]);
+    setFile() {
+      this.photo = this.$refs.photo.files[0];
     },
     modifyProfil() {
-      this.currentUser = JSON.parse(localStorage.getItem("User"));
+      const formData = new FormData();
+      formData.append("photo", this.photo);
+      formData.append("first_name", this.first_name);
+      formData.append("last_name", this.last_name);
+      formData.append("bio", this.bio);
+      formData.append("email", this.email);
       const user = JSON.parse(localStorage.getItem("User"));
       const userId = user.userId;
+      const token = user.token;
 
       axios
-        .put("http://localhost:3000/api/auth/" + userId, {
-          first_name: this.currentUser.first_name,
-          last_name: this.currentUser.last_name,
-          bio: this.currentUser.bio,
-          photo: this.currentUser.photo,
-          email: this.currentUser.email,
-          token: this.currentUser.token,
+        .put("auth/" + userId, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: "Bearer" + " " + token,
+          },
         })
         .then((response) => {
           console.log(response);
@@ -128,14 +132,14 @@ export default {
       .get("http://localhost:3000/api/auth/" + userId, {
         headers: { Authorization: "Bearer" + " " + token },
       })
-      .then((res) => {
-        this.currentUser = JSON.parse(JSON.stringify(res.data.data[0]));
-        console.log(this.currentUser);
-        (this.email = this.currentUser.email),
-          (this.first_name = this.currentUser.first_name),
-          (this.last_name = this.currentUser.last_name),
-          (this.photo = this.currentUser.photo),
-          (this.bio = this.currentUser.bio);
+      .then((response) => {
+        const currentUser = JSON.parse(JSON.stringify(response.data.data[0]));
+        console.log(currentUser);
+        (this.email = currentUser.email),
+          (this.first_name = currentUser.first_name),
+          (this.last_name = currentUser.last_name),
+          (this.photo = currentUser.photo),
+          (this.bio = currentUser.bio);
       })
       .catch(function (error) {
         console.log(error);

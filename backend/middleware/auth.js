@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
         const decodedToken = jwt.verify(token, tokenMasque);
         const userId = decodedToken.userId;
         console.log(userId);
-        if (req.params.id && req.params.id != userId) {
+        if (req.params.userId && req.params.userId != userId) {
             res.status(401).json({ message: "Vous n\'avez pas les droits requis pour accéder à ce contenu" });
         } else {
             

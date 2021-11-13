@@ -21,13 +21,11 @@ exports.signup = (req, res, next) => {
         password: hash,
         first_name: req.body.first_name,
         last_name: req.body.last_name,
-        photo: "http://localhost:3000/images/PhotoProfilDefault.jpg",
-        bio:"",
       };
       //Constante qui enregistrera le nouvel utilisateur dans la base de données
-      const query = 'INSERT INTO Users (email, password, first_name, last_name, photo, bio) VALUES(?,?,?,?,?,?)';
+      const query = 'INSERT INTO Users (email, password, first_name, last_name) VALUES(?,?,?,?)';
       //Constante qui déclarera les valeurs tapées par le nouvel utilisateur
-      const values = [user.email, user.password, user.first_name, user.last_name, user.photo, user.bio];
+      const values = [user.email, user.password, user.first_name, user.last_name];
       //Envoi de la requête à la base de données
       connection.query(query, values, (err, data, fields) => {
         if (err) {
@@ -76,7 +74,7 @@ exports.login = (req, res, next) => {
           userId: data[0].id,
           isAdmin: data[0].isAdmin,
           token: jwt.sign(
-            { userId: data[0].id, isAdmin: data[0].isAdmin},
+            { userId: data[0].id, isAdmin: data[0].isAdmin },
             tokenMasque,
             { expiresIn: "24h" }
           )
@@ -120,14 +118,15 @@ exports.getOneUser = (req, res) => {
 //Modification des données d'un utilisateur
 exports.modifyProfil = (req, res, next) => {
   const user = {
-    email: req.body.email,
-     first_name: req.body.first_name,
-     last_name: req.body.last_name,
-     bio: req.body.bio,
-     photo: req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : ``
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    bio: req.body.bio,
+    photo: req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : null,
+    id: req.body.id
   };
-  const query ='UPDATE Users SET first_name = ?, last_name = ?, photo = ?, bio = ? WHERE id=?';
-  const value = [user.first_name, user.last_name, user.bio, user.photo, user.email];
+  console.log(photo);
+  const query = `UPDATE Users SET first_name = ?, last_name = ?, photo = ?, bio = ? WHERE id = ?`;
+  const value = [user.first_name, user.last_name, user.bio, user.photo, user.id];
   connection.query(query, value, (err, data, fields) => {
     if (err) {
       return res.status(404).json(err);

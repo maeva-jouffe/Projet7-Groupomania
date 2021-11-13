@@ -90,7 +90,7 @@ export default {
         last_name: this.last_name,
       };
       axios
-        .post("http://localhost:3000/api/auth/signup", signupForm)
+        .post("auth/signup", signupForm)
         .then((response) => {
           //On envoit l'utilisateur vers la page profil.
           this.$router.push({ path: "/auth/:id" });
