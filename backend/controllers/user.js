@@ -124,15 +124,30 @@ exports.modifyProfil = (req, res, next) => {
     photo: req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : null,
     id: req.params.id
   };
-  
-  const query = `UPDATE Users SET first_name = ?, last_name = ?,  bio = ?, photo = ? WHERE id = ?`;
-  const value = [user.first_name, user.last_name, user.bio, user.photo, user.id];
-  connection.query(query, value, (err, data, fields) => {
-    if (err) {
-      return res.status(404).json(err);
-    } else {
-      console.log(user);
-      res.json({ status: 200, data, message: "Informations modifiées avec succès !" })
-    }
-  })
+
+  if (req.file) {
+    const query = `UPDATE Users SET first_name = ?, last_name = ?,  bio = ?, photo = ? WHERE id = ?`;
+    const value = [user.first_name, user.last_name, user.bio, user.photo, user.id];
+    connection.query(query, value, (err, data, fields) => {
+      if (err) {
+        return res.status(404).json(err);
+      } else {
+        console.log(user);
+        res.json({ status: 200, data, message: "Informations modifiées avec succès !" })
+      }
+    })
+  } else {
+    const query = `UPDATE Users SET first_name = ?, last_name = ?,  bio = ? WHERE id = ?`;
+    const value = [user.first_name, user.last_name, user.bio, user.id];
+    connection.query(query, value, (err, data, fields) => {
+      if (err) {
+        return res.status(404).json(err);
+      } else {
+        console.log(user);
+        res.json({ status: 200, data, message: "Informations modifiées avec succès !" })
+      }
+    })
+  }
+
+ 
 };
