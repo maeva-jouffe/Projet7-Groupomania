@@ -68,7 +68,6 @@ export default {
         .post("auth/login", loginForm)
         .then((response) => {
           const token = response.data.token;
-          console.log(token);
           this.$store.commit("setToken", token);
           axios.defaults.headers.common["Authorization"] = "Bearer" + " " + token;
           //On envoie le token et le userId dansle local Storage

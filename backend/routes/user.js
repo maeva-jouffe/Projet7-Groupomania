@@ -17,6 +17,6 @@ router.delete('/:id', userCtrl.deleteAccount);
 router.get('/:id', auth, userCtrl.getOneUser);
 
 //Modification des données d'un utilisateur
-router.put('/:id', auth, multer)
+router.put('/:id', auth, multer, userCtrl.modifyProfil);
 
 module.exports = router;

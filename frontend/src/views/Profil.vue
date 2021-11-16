@@ -13,11 +13,11 @@
     <div v-show="showModify">
       <form @submit.prevent>
         <div class="form-group">
-          <label for="photoDeProfil">Photo de profil</label>
-          <img :src="photo" alt="photo de profil" class="modifyPhotoDeProfil" />
+          <label for="photoDeProfil">Photo de profil</label><br/>
+          <img :src="photo" alt="photo de profil" class="modifyPhotoDeProfil" id="avatar"/>
           <input
             type="file"
-            @change="setFile()"
+            @change="setFile"
             ref="photo"
             name="photo"
             class="form-control"
@@ -68,6 +68,7 @@
         >
           Enregistrer mes modifications
         </button>
+
       </form>
     </div>
   </div>
@@ -75,6 +76,7 @@
 
 <script>
 import Navbar from "../components/Navbar.vue";
+const FormData= require ('form-data');
 const axios = require("axios").default;
 
 export default {
@@ -91,36 +93,44 @@ export default {
       photo: "",
       isAdmin: "",
       bio: "",
+      id:"",
       showModify: false,
     };
   },
   methods: {
-    setFile() {
-      this.photo = this.$refs.photo.files[0];
+    setFile(event) {
+      this.photo = event.target.files[0];
     },
     modifyProfil() {
-      const formData = new FormData();
-      formData.append("photo", this.photo);
-      formData.append("first_name", this.first_name);
-      formData.append("last_name", this.last_name);
-      formData.append("bio", this.bio);
-      formData.append("email", this.email);
+      const form = new FormData();
+
+      form.append("first_name", this.first_name);
+      form.append("last_name", this.last_name);
+      form.append("bio", this.bio);
+      form.append("photo", this.photo);
+
+      
       const user = JSON.parse(localStorage.getItem("User"));
       const userId = user.userId;
       const token = user.token;
 
       axios
-        .put("auth/" + userId, formData, {
+        .put("auth/" + userId,
+        form, {
+          
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
             Authorization: "Bearer" + " " + token,
           },
         })
         .then((response) => {
+          location.reload();
           console.log(response);
+
         })
         .catch(function (error) {
           console.log(error);
+        
         });
     },
   },
@@ -134,7 +144,6 @@ export default {
       })
       .then((response) => {
         const currentUser = JSON.parse(JSON.stringify(response.data.data[0]));
-        console.log(currentUser);
         (this.email = currentUser.email),
           (this.first_name = currentUser.first_name),
           (this.last_name = currentUser.last_name),
@@ -155,11 +164,18 @@ export default {
   box-shadow: 3px 2px 8px #343a40;
   margin-bottom: 2rem;
 }
+#avatar{
+  width: 10%;
+margin-bottom: 1em;
+}
 .modifyPhotoDeProfil {
   border-radius: 100%;
   width: 8%;
 }
 h1 {
   color: #007bff;
+}
+label{
+  font-size:1.5rem;
 }
 </style>

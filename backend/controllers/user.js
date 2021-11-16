@@ -122,15 +122,16 @@ exports.modifyProfil = (req, res, next) => {
     last_name: req.body.last_name,
     bio: req.body.bio,
     photo: req.file ? `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}` : null,
-    id: req.body.id
+    id: req.params.id
   };
-  console.log(photo);
-  const query = `UPDATE Users SET first_name = ?, last_name = ?, photo = ?, bio = ? WHERE id = ?`;
+  
+  const query = `UPDATE Users SET first_name = ?, last_name = ?,  bio = ?, photo = ? WHERE id = ?`;
   const value = [user.first_name, user.last_name, user.bio, user.photo, user.id];
   connection.query(query, value, (err, data, fields) => {
     if (err) {
       return res.status(404).json(err);
     } else {
+      console.log(user);
       res.json({ status: 200, data, message: "Informations modifiées avec succès !" })
     }
   })
